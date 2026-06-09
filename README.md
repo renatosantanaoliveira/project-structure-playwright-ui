@@ -91,10 +91,13 @@ O `global-setup.ts` grava `allure-results/environment.properties` (ambiente, bas
 
 Workflow do GitHub Actions em `.github/workflows/ci.yml`:
 
-1. Dispara em `push` e `pull_request` para `main`/`master`.
-2. Configura Node 18, instala dependências (`npm ci`) e os browsers do Playwright.
-3. Executa a suíte no ambiente `qa` (`npm run test:qa`).
-4. Gera o relatório Allure e publica `allure-report` e `allure-results` como artefatos do workflow (retidos por 90 dias).
+1. Dispara em `push`, `pull_request` e execução manual (`workflow_dispatch`).
+2. Executa Playwright em `qa` por padrão, com suporte a seleção manual de ambiente.
+3. Gera e publica artifacts do Allure mesmo quando os testes falham.
+4. Publica o relatório Allure no GitHub Pages quando a execução roda na branch padrão.
+5. Preserva o histórico do Allure por ambiente para exibir trend.
+
+A documentação completa do workflow está em [GitHub Actions para Playwright](docs/github-actions-playwright.md).
 
 ## Diferencial do template e playground utilizado
 
@@ -106,8 +109,10 @@ Como **playground**, os testes apontam para o [Sauce Demo](https://www.saucedemo
 
 - [Playwright Documentation](https://playwright.dev)
 - [Playwright Test Framework](https://playwright.dev/docs/test-intro)
+- [Playwright Continuous Integration](https://playwright.dev/docs/ci)
 - [Page Object Model Pattern](https://playwright.dev/docs/pom)
 - [Allure Report](https://docs.qameta.io/allure/)
+- [GitHub Pages Custom Workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
 - [Best Practices for E2E Testing](https://playwright.dev/docs/best-practices)
 
 ---
