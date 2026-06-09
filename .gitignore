@@ -11,6 +11,9 @@ node_modules/
 .env
 .env.local
 
+# Playwright auth state (storageState)
+.auth/
+
 # IDE
 .vscode/
 .idea/
