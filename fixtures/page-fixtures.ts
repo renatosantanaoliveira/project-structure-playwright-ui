@@ -38,8 +38,8 @@ type PagesFixtures = {
   data: TestData;
 };
 
-function requireEnv(key: string, fallback?: string): string {
-  const value = process.env[key] ?? fallback;
+function requireEnv(key: string): string {
+  const value = process.env[key];
   if (!value?.trim()) {
     throw new Error(
       `Required env var "${key}" is not set. Copy .env.example to .env and fill in the values, or set the secret in CI.`
@@ -49,10 +49,10 @@ function requireEnv(key: string, fallback?: string): string {
 }
 
 const testData: TestData = {
-  standardUser: { username: dataJson.standardUser.username, password: requireEnv('SAUCE_PASSWORD', 'secret_sauce') },
-  lockedOutUser: { username: dataJson.lockedOutUser.username, password: requireEnv('SAUCE_PASSWORD', 'secret_sauce') },
-  invalidUser: { username: dataJson.invalidUser.username, password: requireEnv('SAUCE_PASSWORD', 'secret_sauce') },
-  invalidPassword: requireEnv('INVALID_PASSWORD', 'invalid_password'),
+  standardUser: { username: dataJson.standardUser.username, password: requireEnv('SAUCE_PASSWORD') },
+  lockedOutUser: { username: dataJson.lockedOutUser.username, password: requireEnv('SAUCE_PASSWORD') },
+  invalidUser: { username: dataJson.invalidUser.username, password: requireEnv('SAUCE_PASSWORD') },
+  invalidPassword: requireEnv('INVALID_PASSWORD'),
   products: dataJson.products,
   messages: dataJson.messages,
 };

@@ -152,6 +152,8 @@ allure-history-dev-*
 
 Com isso, a trend de `qa` não se mistura com a trend de `dev`. A primeira execução cria o histórico inicial; os gráficos de trend passam a aparecer a partir das execuções seguintes do mesmo ambiente.
 
+> Nota: cada execução salva o histórico sob uma chave de cache única (`allure-history-<ambiente>-<run_id>-<run_attempt>`), pois caches do GitHub Actions são imutáveis. A restauração sempre usa o cache mais recente do mesmo ambiente via `restore-keys`. Caches antigos não são removidos manualmente — o GitHub aplica eviction automática por LRU ao atingir o limite de 10GB por repositório, o que é suficiente para a maioria dos projetos. Se o volume de execuções for muito alto, considere um workflow agendado de limpeza com `gh cache delete`.
+
 ## Boas Práticas Aplicadas
 
 - `npm ci` para instalação determinística.
@@ -165,6 +167,9 @@ Com isso, a trend de `qa` não se mistura com a trend de `dev`. A primeira execu
 - Histórico do Allure separado por ambiente.
 - Permissões mínimas por job.
 - Sem matriz de Node quando há apenas uma versão suportada, reduzindo complexidade desnecessária.
+- `retention-days: 7` nos artifacts do Allure, evitando consumo desnecessário de armazenamento em projetos com execuções frequentes.
+- `cancel-in-progress` habilitado apenas para `pull_request`, cancelando execuções obsoletas em pushes sucessivos sem arriscar interromper um deploy do GitHub Pages.
+- `.github/dependabot.yml` mantém as actions (`checkout`, `setup-node`, `cache`, `upload-artifact`, etc.) atualizadas automaticamente via PRs semanais.
 
 ## Pontos Para Adaptar
 
@@ -173,3 +178,4 @@ Com isso, a trend de `qa` não se mistura com a trend de `dev`. A primeira execu
 - Ambientes disponíveis em `config/`.
 - Nome e política do ambiente `github-pages`, caso a organização use proteção ou aprovação manual.
 - Estratégia de publicação do relatório, caso o projeto não utilize GitHub Pages.
+- `retention-days` dos artifacts do Allure, caso a organização exija um período diferente de retenção.

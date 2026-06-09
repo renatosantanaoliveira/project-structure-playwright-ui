@@ -19,7 +19,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.inputs.target_environment || 'qa' }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
@@ -53,26 +53,21 @@ jobs:
             exit 1
           fi
 
-      - name: Validate secrets availability
+      - name: Validate required secrets
         run: |
           if [ -z "${SAUCE_PASSWORD}" ]; then
+            echo "Error: SAUCE_PASSWORD secret is not set in GitHub Actions."
             if [ "${PR_FROM_FORK}" = "true" ]; then
-              echo "Warning: SAUCE_PASSWORD is unavailable for forked PRs. Using Sauce Demo default fallback."
-              export SAUCE_PASSWORD=secret_sauce
-            else
-              echo "Error: SAUCE_PASSWORD secret is not set in GitHub Actions."
-              exit 1
+              echo "This is a forked pull request, so repository secrets are not available."
             fi
+            exit 1
           fi
-
           if [ -z "${INVALID_PASSWORD}" ]; then
+            echo "Error: INVALID_PASSWORD secret is not set in GitHub Actions."
             if [ "${PR_FROM_FORK}" = "true" ]; then
-              echo "Warning: INVALID_PASSWORD is unavailable for forked PRs. Using default fallback."
-              export INVALID_PASSWORD=invalid_password
-            else
-              echo "Error: INVALID_PASSWORD secret is not set in GitHub Actions."
-              exit 1
+              echo "This is a forked pull request, so repository secrets are not available."
             fi
+            exit 1
           fi
 
       - name: Restore Allure history
@@ -84,7 +79,7 @@ jobs:
             allure-history-${{ env.TEST_ENV }}-
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium firefox
 
       - name: Run Playwright tests
         run: |
@@ -101,6 +96,7 @@ jobs:
       - name: Prepare Allure history
         if: always()
         run: |
+          mkdir -p allure-results
           if [ -d ".allure-history" ]; then
             mkdir -p allure-results/history
             cp -R .allure-history/. allure-results/history/
@@ -136,6 +132,7 @@ jobs:
         with:
           name: allure-report-${{ env.TEST_ENV }}
           path: allure-report
+          retention-days: 7
 
       - name: Upload Allure results (raw)
         if: always()
@@ -143,16 +140,17 @@ jobs:
         with:
           name: allure-results-${{ env.TEST_ENV }}
           path: allure-results
+          retention-days: 7
 
       - name: Upload GitHub Pages artifact
-        if: always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == github.event.repository.default_branch
+        if: ${{ !cancelled() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == github.event.repository.default_branch }}
         uses: actions/upload-pages-artifact@v5
         with:
           path: allure-report
 
   deploy-pages:
     needs: test
-    if: always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == github.event.repository.default_branch
+    if: ${{ !cancelled() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref_name == github.event.repository.default_branch }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

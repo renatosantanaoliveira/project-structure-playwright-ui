@@ -97,7 +97,7 @@ Workflow do GitHub Actions em `.github/workflows/ci.yml`:
 4. Publica o relatório Allure no GitHub Pages quando a execução roda na branch padrão.
 5. Preserva o histórico do Allure por ambiente para exibir trend.
 
-> Nota: PRs de fork não recebem secrets do repositório pelo GitHub Actions. Nesse caso, o workflow usa um fallback seguro para `SAUCE_PASSWORD` e `INVALID_PASSWORD`, garantindo que o job não falhe por falta de secrets apenas em forks.
+> Nota: PRs de fork não recebem secrets do repositório pelo GitHub Actions. Por isso o workflow agora falha com erro claro se `SAUCE_PASSWORD` ou `INVALID_PASSWORD` estiverem ausentes, evitando qualquer fallback de credenciais.
 
 A documentação completa do workflow está em [GitHub Actions para Playwright](docs/github-actions-playwright.md).
 
