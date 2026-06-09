@@ -10,6 +10,12 @@ const configMap: Record<string, EnvConfig> = {
   dev: devConfig,
 };
 
-export const envConfig: EnvConfig = configMap[env] ?? qaConfig;
+const selectedConfig = configMap[env];
+
+if (!selectedConfig) {
+  throw new Error(`Unknown NODE_ENV "${env}". Available environments: ${Object.keys(configMap).join(', ')}`);
+}
+
+export const envConfig: EnvConfig = selectedConfig;
 
 export default envConfig;
