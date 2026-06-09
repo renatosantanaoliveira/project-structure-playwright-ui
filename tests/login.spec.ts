@@ -2,9 +2,6 @@ import type { LoginPage } from '../pages';
 import { test, expect } from '../fixtures/page-fixtures';
 
 test.describe('Login', () => {
-  // Login tests must start unauthenticated regardless of project-level storageState.
-  test.use({ storageState: { cookies: [], origins: [] } });
-
   test.beforeEach(async ({ loginPage }) => {
     await loginPage.goto();
   });

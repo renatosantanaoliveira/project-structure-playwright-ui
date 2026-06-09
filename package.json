@@ -10,6 +10,7 @@
     "test:qa": "cross-env NODE_ENV=qa playwright test",
     "test:dev": "cross-env NODE_ENV=dev playwright test",
     "test:chromium": "cross-env NODE_ENV=qa playwright test --project=chromium",
+    "test:ui": "playwright test --ui",
     "show-report": "npx playwright show-report",
     "allure:generate": "npx allure generate allure-results --clean -o allure-report",
     "allure:open": "npx allure open allure-report",
