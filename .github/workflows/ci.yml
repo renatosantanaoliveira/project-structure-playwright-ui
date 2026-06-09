@@ -45,6 +45,14 @@ jobs:
             exit 1
           fi
 
+      - name: Restore Allure history
+        uses: actions/cache/restore@v5
+        with:
+          path: .allure-history
+          key: allure-history-${{ env.TEST_ENV }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            allure-history-${{ env.TEST_ENV }}-
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
@@ -53,9 +61,37 @@ jobs:
         env:
           NODE_ENV: ${{ env.TEST_ENV }}
 
+      - name: Prepare Allure history
+        if: always()
+        run: |
+          if [ -d ".allure-history" ]; then
+            mkdir -p allure-results/history
+            cp -R .allure-history/. allure-results/history/
+          fi
+
       - name: Generate Allure report
         if: always()
         run: npm run allure:generate
+
+      - name: Preserve Allure history
+        id: preserve-allure-history
+        if: always()
+        run: |
+          rm -rf .allure-history
+          mkdir -p .allure-history
+          if [ -d "allure-report/history" ]; then
+            cp -R allure-report/history/. .allure-history/
+            echo "history_found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "history_found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Save Allure history
+        if: always() && steps.preserve-allure-history.outputs.history_found == 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: .allure-history
+          key: allure-history-${{ env.TEST_ENV }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Upload Allure report artifact
         if: always()
