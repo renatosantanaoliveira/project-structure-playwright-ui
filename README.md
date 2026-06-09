@@ -92,7 +92,7 @@ O `global-setup.ts` grava `allure-results/environment.properties` (ambiente, bas
 Workflow do GitHub Actions em `.github/workflows/ci.yml`:
 
 1. Dispara em `push`, `pull_request` e execução manual (`workflow_dispatch`).
-2. Executa Playwright em `qa` por padrão, com suporte a seleção manual de ambiente.
+2. Executa Playwright em `qa` por padrão, com suporte a seleção manual de ambiente e tag.
 3. Gera e publica artifacts do Allure mesmo quando os testes falham.
 4. Publica o relatório Allure no GitHub Pages quando a execução roda na branch padrão.
 5. Preserva o histórico do Allure por ambiente para exibir trend.

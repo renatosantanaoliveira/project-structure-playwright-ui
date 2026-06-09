@@ -17,7 +17,7 @@ Este documento descreve o workflow de referência em `.github/workflows/ci.yml` 
 |---|---|
 | `push` em `main`/`master` | Executa testes em `qa`, gera Allure e publica no GitHub Pages quando a branch for a branch padrão do repositório |
 | `pull_request` para `main`/`master` | Executa testes em `qa` e publica artifacts, sem deploy no GitHub Pages |
-| `workflow_dispatch` | Permite executar manualmente informando `target_environment`; publica no GitHub Pages quando rodar na branch padrão |
+| `workflow_dispatch` | Permite executar manualmente informando `target_environment` e, opcionalmente, `test_tag`; publica no GitHub Pages quando rodar na branch padrão |
 
 ## Multiambiente
 
@@ -58,6 +58,31 @@ Para adicionar um novo ambiente em outro projeto:
 
 Essa validação evita que um ambiente escrito errado rode acidentalmente contra `qa`.
 
+## Execução Por Tag
+
+Em execução manual, o input opcional `test_tag` permite filtrar os testes executados pelo `--grep` do Playwright.
+
+Exemplos de valores:
+
+```text
+@smoke
+@regression
+```
+
+Quando `test_tag` é informado, o workflow executa:
+
+```bash
+npm test -- --grep "<tag>"
+```
+
+Quando `test_tag` fica vazio, o workflow executa a suíte completa:
+
+```bash
+npm test
+```
+
+Esse filtro é aplicado apenas quando necessário. Execuções automáticas por `push` e `pull_request` continuam rodando a suíte completa em `qa`.
+
 ## Jobs
 
 O workflow tem dois jobs para manter responsabilidades separadas:
@@ -80,7 +105,7 @@ Essa separação permite aplicar permissões mínimas:
 4. Valida se o ambiente informado existe em `config/`.
 5. Restaura o histórico anterior do Allure por ambiente.
 6. Instala browsers e dependências do Playwright com `npx playwright install --with-deps`.
-7. Executa a suíte com `npm test`.
+7. Executa a suíte com `npm test` ou com `npm test -- --grep "<tag>"` quando `test_tag` for informado.
 8. Copia o histórico restaurado para `allure-results/history`.
 9. Gera o relatório Allure com `npm run allure:generate`.
 10. Preserva o novo `allure-report/history` em cache.

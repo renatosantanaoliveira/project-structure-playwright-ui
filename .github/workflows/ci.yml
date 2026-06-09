@@ -12,6 +12,10 @@ on:
         required: true
         default: qa
         type: string
+      test_tag:
+        description: Optional Playwright grep tag, for example @smoke or @regression
+        required: false
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event.inputs.target_environment || 'qa' }}
@@ -25,6 +29,7 @@ jobs:
       contents: read
     env:
       TEST_ENV: ${{ github.event.inputs.target_environment || 'qa' }}
+      TEST_TAG: ${{ github.event.inputs.test_tag || '' }}
 
     steps:
       - uses: actions/checkout@v6
@@ -57,7 +62,12 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: npm test
+        run: |
+          if [ -n "${TEST_TAG}" ]; then
+            npm test -- --grep "${TEST_TAG}"
+          else
+            npm test
+          fi
         env:
           NODE_ENV: ${{ env.TEST_ENV }}
 
