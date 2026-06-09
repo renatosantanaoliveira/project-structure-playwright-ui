@@ -30,6 +30,9 @@ jobs:
     env:
       TEST_ENV: ${{ github.event.inputs.target_environment || 'qa' }}
       TEST_TAG: ${{ github.event.inputs.test_tag || '' }}
+      SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
+      INVALID_PASSWORD: ${{ secrets.INVALID_PASSWORD }}
+      PR_FROM_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
 
     steps:
       - uses: actions/checkout@v6
@@ -48,6 +51,28 @@ jobs:
           if [ ! -f "config/${TEST_ENV}.config.ts" ]; then
             echo "Environment '${TEST_ENV}' is not configured. Expected file: config/${TEST_ENV}.config.ts"
             exit 1
+          fi
+
+      - name: Validate secrets availability
+        run: |
+          if [ -z "${SAUCE_PASSWORD}" ]; then
+            if [ "${PR_FROM_FORK}" = "true" ]; then
+              echo "Warning: SAUCE_PASSWORD is unavailable for forked PRs. Using Sauce Demo default fallback."
+              export SAUCE_PASSWORD=secret_sauce
+            else
+              echo "Error: SAUCE_PASSWORD secret is not set in GitHub Actions."
+              exit 1
+            fi
+          fi
+
+          if [ -z "${INVALID_PASSWORD}" ]; then
+            if [ "${PR_FROM_FORK}" = "true" ]; then
+              echo "Warning: INVALID_PASSWORD is unavailable for forked PRs. Using default fallback."
+              export INVALID_PASSWORD=invalid_password
+            else
+              echo "Error: INVALID_PASSWORD secret is not set in GitHub Actions."
+              exit 1
+            fi
           fi
 
       - name: Restore Allure history
