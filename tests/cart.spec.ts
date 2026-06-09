@@ -10,13 +10,13 @@ test.describe('Cart', () => {
    *
    * @tags smoke
    */
-  test('Should add two products to the cart', { tag: '@smoke' }, async ({ loginPage, inventoryPage, data }) => {
-    await loginPage.login(data.standardUser.username, data.standardUser.password);
+  test('Should add two products to the cart', { tag: '@smoke' }, async ({ inventoryPage, data }) => {
+    await inventoryPage.goto();
 
     await inventoryPage.addProductToCartById(data.products.firstProduct.id);
     await inventoryPage.addProductToCartById(data.products.secondProduct.id);
 
-    await expect(await inventoryPage.getCartCount()).toBe(2);
+    await expect(inventoryPage.cartBadge).toHaveText('2');
   });
 
   /**
@@ -29,30 +29,12 @@ test.describe('Cart', () => {
    *
    * @tags smoke
    */
-  test('Should open the first product, verify the title and add it to the cart', { tag: '@smoke' }, async ({ loginPage, inventoryPage, productPage, data }) => {
-    await loginPage.login(data.standardUser.username, data.standardUser.password);
+  test('Should open the first product, verify the title and add it to the cart', { tag: '@smoke' }, async ({ inventoryPage, productPage, data }) => {
+    await inventoryPage.goto();
 
     await inventoryPage.clickProductByName(data.products.firstProduct.name);
 
-    await expect(await productPage.getTitleText()).toBe(data.products.firstProduct.name);
+    await expect(productPage.productTitle).toHaveText(data.products.firstProduct.name);
     await productPage.addToCart();
-  });
-
-  /**
-   * Scenario: Validate cart badge quantity after adding multiple products.
-   *
-   * Given a standard user is authenticated
-   * When the user adds the first and second configured products to the cart
-   * Then the cart badge should reflect the total number of added products
-   *
-   * @tags regression
-   */
-  test('Should add the first and second products and verify the cart badge count', { tag: '@regression' }, async ({ loginPage, inventoryPage, data }) => {
-    await loginPage.login(data.standardUser.username, data.standardUser.password);
-
-    await inventoryPage.addProductToCartById(data.products.firstProduct.id);
-    await inventoryPage.addProductToCartById(data.products.secondProduct.id);
-
-    await expect(await inventoryPage.getCartCount()).toBe(2);
   });
 });

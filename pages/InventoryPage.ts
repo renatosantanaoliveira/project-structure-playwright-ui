@@ -2,13 +2,18 @@ import { type Page, type Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class InventoryPage extends BasePage {
-  private readonly inventoryContainer: Locator;
-  private readonly cartBadge: Locator;
+  readonly url = '/inventory.html';
+  readonly inventoryContainer: Locator;
+  readonly cartBadge: Locator;
 
   constructor(page: Page) {
     super(page);
-    this.inventoryContainer = this.page.locator('.inventory_list');
-    this.cartBadge = this.page.locator('.shopping_cart_badge');
+    this.inventoryContainer = this.page.getByTestId('inventory-container');
+    this.cartBadge = this.page.getByTestId('shopping-cart-badge');
+  }
+
+  async goto(): Promise<void> {
+    await super.goto(this.url);
   }
 
   async isVisible(): Promise<boolean> {
@@ -20,7 +25,7 @@ export class InventoryPage extends BasePage {
   }
 
   async clickProductByName(productName: string): Promise<void> {
-    await this.page.locator('.inventory_item_name', { hasText: productName }).click();
+    await this.page.getByTestId('inventory-item-name').filter({ hasText: productName }).click();
   }
 
   async getCartCount(): Promise<number> {

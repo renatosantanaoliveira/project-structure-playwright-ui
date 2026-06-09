@@ -1,5 +1,4 @@
-import { test as base, expect, type Page } from '@playwright/test';
-import fs from 'fs';
+import { test as base, expect } from '@playwright/test';
 import { LoginPage, InventoryPage, ProductPage } from '../pages';
 import dataJson from '../data/login-massa.json';
 
@@ -39,64 +38,40 @@ type PagesFixtures = {
   data: TestData;
 };
 
-type AllureHelpers = {
-  label: (name: string, value: string) => void;
-  link: (url: string, title?: string) => void;
-  issue: (id: string) => void;
-  attachment: (name: string, data: Buffer | string, contentType?: string) => Promise<void>;
+function requireEnv(key: string): string {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(
+      `Required env var "${key}" is not set. Copy .env.example to .env and fill in the values.`
+    );
+  }
+  return value;
+}
+
+const testData: TestData = {
+  standardUser: { username: dataJson.standardUser.username, password: requireEnv('SAUCE_PASSWORD') },
+  lockedOutUser: { username: dataJson.lockedOutUser.username, password: requireEnv('SAUCE_PASSWORD') },
+  invalidUser: { username: dataJson.invalidUser.username, password: requireEnv('SAUCE_PASSWORD') },
+  invalidPassword: requireEnv('INVALID_PASSWORD'),
+  products: dataJson.products,
+  messages: dataJson.messages,
 };
 
-const testData = dataJson as TestData;
-
-export const test = base.extend<PagesFixtures & { allure: AllureHelpers }>({
+export const test = base.extend<PagesFixtures>({
   loginPage: async ({ page }, use) => {
-    const lp = new LoginPage(page);
-    await lp.goto();
-    await use(lp);
+    await use(new LoginPage(page));
   },
 
   inventoryPage: async ({ page }, use) => {
-    const ip = new InventoryPage(page);
-    await use(ip);
+    await use(new InventoryPage(page));
   },
 
   productPage: async ({ page }, use) => {
-    const pp = new ProductPage(page);
-    await use(pp);
+    await use(new ProductPage(page));
   },
 
   data: async ({}, use) => {
     await use(testData);
-  },
-
-  // Lightweight Allure helpers for adding annotations (issue/link/label).
-  // Uses Playwright's `testInfo.annotations` so it's implementation-agnostic
-  // and remains simple for all seniorities.
-  allure: async ({}, use, testInfo) => {
-    const helpers: AllureHelpers = {
-      label: (name: string, value: string) => {
-        testInfo.annotations.push({ type: name, description: value });
-      },
-      link: (url: string, title?: string) => {
-        const desc = title ? `${title} -> ${url}` : url;
-        testInfo.annotations.push({ type: 'link', description: desc });
-      },
-      issue: (id: string) => {
-        testInfo.annotations.push({ type: 'issue', description: id });
-      },
-      attachment: async (name: string, data: Buffer | string, contentType?: string) => {
-        // If `data` is a string path to an existing file, attach by path.
-        if (typeof data === 'string' && fs.existsSync(data)) {
-          await testInfo.attach(name, { path: data });
-          return;
-        }
-
-        const body = typeof data === 'string' ? Buffer.from(data, 'utf8') : data;
-        await testInfo.attach(name, { body, contentType: contentType ?? 'application/octet-stream' });
-      },
-    };
-
-    await use(helpers);
   },
 });
 

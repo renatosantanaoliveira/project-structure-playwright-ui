@@ -30,69 +30,57 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 2 : undefined,
   /* Multi-reporters: HTML (never auto-open) + concise list in terminal. */
   reporter: [
     ['html', { open: 'never' }],
     ['list'],
-    // Allure reporter: writes to `allure-results`. Enabled for future use.
-    // The package `allure-playwright` must be installed to enable this.
     ['allure-playwright', { outputFolder: 'allure-results' }],
   ],
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+  /* Shared settings for all the projects below. */
   use: {
     /* Base URL provided by selected environment config */
     baseURL: envConfig.baseUrl,
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    /* Evidence collectors: only keep artifacts when failures occur to
-       avoid filling disk with successful-run artifacts. */
+    /* Tells getByTestId() to look for data-test="..." attributes (Saucedemo convention) */
+    testIdAttribute: 'data-test',
+
+    /* Collect trace when retrying the failed test. */
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
     trace: 'retain-on-failure',
   },
 
-  /* Global setup: write Allure environment properties before the test run.
-     This creates `allure-results/environment.properties` so Allure UI shows environment metadata. */
-  globalSetup: require.resolve('./global-setup'),
+  /* Global setup: write Allure environment properties before the test run. */
+  globalSetup: './global-setup',
+
+  /* Global teardown: removes saved auth state on CI to prevent session leakage between jobs. */
+  globalTeardown: './global-teardown',
 
   /* Configure projects for major browsers */
   projects: [
+    /* Runs once before all browser projects: logs in and saves auth state. */
+    {
+      name: 'setup',
+      testMatch: '**/auth.setup.ts',
+    },
+
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    }
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
+      use: {
+        ...devices['Desktop Firefox'],
+        storageState: '.auth/user.json',
+      },
+      dependencies: ['setup'],
+    },
   ],
-
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
 });

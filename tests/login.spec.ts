@@ -2,6 +2,13 @@ import type { LoginPage } from '../pages';
 import { test, expect } from '../fixtures/page-fixtures';
 
 test.describe('Login', () => {
+  // Login tests must start unauthenticated regardless of project-level storageState.
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test.beforeEach(async ({ loginPage }) => {
+    await loginPage.goto();
+  });
+
   /**
    * Assert the login form remains on the login page and displays the expected
    * validation or authentication error message.
@@ -10,7 +17,7 @@ test.describe('Login', () => {
    * @param expectedMessage Error message expected for the attempted login.
    */
   const expectLoginError = async (loginPage: LoginPage, expectedMessage: string) => {
-    await expect(await loginPage.getErrorMessageText()).toBe(expectedMessage);
+    await expect(loginPage.errorMessage).toHaveText(expectedMessage);
     await expect(loginPage.page).toHaveURL(loginPage.url);
   };
 
@@ -29,7 +36,7 @@ test.describe('Login', () => {
       await loginPage.login(data.standardUser.username, data.standardUser.password);
 
       await expect(page).toHaveURL(/\/inventory\.html$/);
-      await expect(await inventoryPage.isVisible()).toBe(true);
+      await expect(inventoryPage.inventoryContainer).toBeVisible();
     });
   });
 

@@ -1,17 +1,13 @@
 {
   "standardUser": {
-    "username": "standard_user",
-    "password": "secret_sauce"
+    "username": "standard_user"
   },
   "lockedOutUser": {
-    "username": "locked_out_user",
-    "password": "secret_sauce"
+    "username": "locked_out_user"
   },
   "invalidUser": {
-    "username": "user_invalido",
-    "password": "secret_sauce"
+    "username": "user_invalido"
   },
-  "invalidPassword": "senha_errada",
   "products": {
     "firstProduct": {
       "id": "sauce-labs-backpack",

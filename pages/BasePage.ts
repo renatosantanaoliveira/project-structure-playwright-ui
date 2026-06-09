@@ -8,11 +8,7 @@ export class BasePage {
   }
 
   async goto(url: string): Promise<void> {
-    await this.page.goto(url, { waitUntil: 'networkidle' });
-  }
-
-  async waitForSelector(selector: string, options?: { timeout?: number }) {
-    return this.page.waitForSelector(selector, { timeout: options?.timeout });
+    await this.page.goto(url, { waitUntil: 'load' });
   }
 
   async waitForURL(urlOrRegExp: string | RegExp, options?: { timeout?: number }) {
